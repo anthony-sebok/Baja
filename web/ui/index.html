@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<link href="https://fonts.googleapis.com/css?family=Exo+2" rel="stylesheet">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="style/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="scripts/jquery.min.js"></script>
+
+	<!-- Latest compiled JavaScript -->
+	<script src="scripts/bootstrap.min.js"></script>
+	
+	<script src="scripts/progressbar.min.js"></script>
+	
+	<style>
+		body {
+			background-color: #44474c;
+			font-family: 'Exo 2', sans-serif;
+		}
+		
+		.container {
+			margin-top: 25%;
+			color: white;
+		}
+		
+		#gas {
+			margin-top: 20%;
+			margin-left: 20%
+			height: 20px;
+		}
+
+        #gasTxt {
+            color: #44474c;
+        }
+		
+		#rpm {
+			width: 70%;
+			margin-top: -35%;
+		}
+		
+		#rpmHead {
+			margin-top: -15%;
+		}
+		
+		#mphHead {
+			margin-top: -25%;
+			margin-left: 5%;
+			font-size: 50px;
+		}
+		
+		h1 small, h2 small {
+			color: #e5e5e5;
+			font-size: 12px;
+		}
+		
+	</style>
+	
+	<script type="text/javascript">
+    /* Adjustable vars for vehicle */    
+    var maxRpm = 8; //x100 converted
+    var maxMph = 60;
+    var maxFuel = 3.5;
+
+    /* Gauges */
+	var mphGauge;
+	var rpmGauge;
+	var gasGauge;
+	var engineTempTxt;
+	var rpmTxt;
+	var mphTxt;
+
+	$(document).ready(function() {
+		/* Gas Gauge */
+		 gasGauge = new ProgressBar.Line(gas, {
+			strokeWidth: 4,
+			easing: 'easeInOut',
+			duration: 1400,
+			color: '#00FF00',
+			trailColor: '#eee',
+			trailWidth: 1,
+			svgStyle: {width: '100%', height: '100%'},
+			text: {
+				style: {
+					color: '#FFFFFF',
+					position: 'absolute',
+					right: '0',
+					top: '30px',
+					padding: 0,
+					margin: 0,
+					transform: null
+				},
+				autoStyleContainer: false
+			},
+			  from: {color: '#FF0000'},
+			  to: {color: '#00FF00'},
+			  step: (state, bar) => {
+				bar.setText(Math.round(bar.value() * 100) + ' %');
+			  }
+		});
+		/* Engine Temp */
+		engineTempTxt = document.getElementById('engineTemp');
+		
+		/* Setup MPH/RPM */
+		mphTxt = document.getElementById("mphText");
+		mphGauge = new ProgressBar.SemiCircle(mph, {
+		  strokeWidth: 6,
+		  easing: 'easeInOut',
+		  duration: 1400,
+		  color: '#7faef9',
+		  trailColor: '#eee',
+		  trailWidth: 1,
+		  svgStyle: null
+		});
+		
+		rpmTxt = document.getElementById("rpmText");
+		rpmGauge = new ProgressBar.SemiCircle(rpm, {
+		  strokeWidth: 6,
+		  easing: 'easeInOut',
+		  duration: 1400,
+		  color: '#7faef9',
+		  trailColor: '#eee',
+		  trailWidth: 1,
+		  svgStyle: null
+		});
+
+		setInterval(updateUI, 100);
+	});
+	
+    function updateUI() {
+        updateField("/var/ui/data/data.rpm", rpmTxt);
+        updateField("/var/ui/data/data.mph", mphTxt);
+        updateField("/var/ui/data/data.temp", engineTempTxt);
+	updateField("/var/ui/data/data.gas", gasTxt);
+    }
+
+    function updateField(file, field) {
+		$.post("reader.php", {fileName: file}, function(data, status) {
+            data = data.trim();
+	    if (file.indexOf("gas") == -1)
+		data = Math.floor(data);
+            if (field.innerText != data) {
+                field.innerText = data;
+                if (file.indexOf("rpm") != -1) {
+                    rpmGauge.animate(data / maxRpm);
+                } else if (file.indexOf("mph") != -1) {
+                    mphGauge.animate(data / maxMph);
+                } else if (file.indexOf("gas") != -1) {
+                    gasGauge.animate(data);
+                }
+            }
+        });
+    }	
+	
+	</script>
+</head>
+
+<body>
+	<div class="container" id="dashboard">
+	<div class="row">
+		<div class="col-sm-3">
+			<center>
+				<h2><span id="engineTemp">75</span>&deg;<small>F</small></h2>
+				<h5>Engine Temp</h5>
+			</center>
+		</div>
+		<div class="col-sm-5">
+			<center>
+				<h1 id="mphHead"><span id="mphText">30</span><small>MPH</small></h1>
+				<div id="mph"></div>
+				<div id="rpm"></div>
+				<h2 id="rpmHead"><span id="rpmText">1</span></h2><small>x100 RPM</small>
+			</center>
+		</div>
+		<div class="col-sm-4">
+			<center>
+                <div id="gasTxt"></div>
+				<div id="gas"></div>
+				<h5>Fuel Level</h5>
+			</center>
+		</div>
+</div>
+	</div>
+</body>
+
+</html>

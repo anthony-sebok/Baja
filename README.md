@@ -4,7 +4,8 @@
 Made with a Raspberry Pi system that will host and run the files. Raspbian is recommended for best use.
 
 ## Software Requirements
-* PHP server
+* PHP
+* Apache
 * Python (included with Raspbian)
 * Firefox or any web browser that can display full-screen
 

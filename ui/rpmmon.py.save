@@ -6,24 +6,22 @@ import time, math
 dist_meas = 0.00
 km_per_hour = 0
 rpm = 0
-elapse = 0
+elapse = 1
 sensor = 40 
 pulse = 0
 start_timer = time.time()
-global last_detect
-last_detect = time.time()
 
 def setup():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     GPIO.setup(sensor, GPIO.IN, GPIO.PUD_UP)
+    GPIO.add_event_detect(sensor, GPIO.FALLING, callback=calculate_elapse, bouncetime=2)
 
 def calculate_elapse(channel):
-    global pulse,start_timer, elapse, last_detect
+    global pulse,start_timer, elapse
     pulse+=1
     elapse = time.time() - start_timer
-    last_detect = time.time()
-    if elapse > 1:
+    if elapse > 100:
        elapse = 0
     start_timer = time.time()
 
@@ -42,18 +40,15 @@ def calculate_speed(r_cm):
         km_per_hour = 0
 
 def init_interrupt():
-    GPIO.add_event_detect(sensor, GPIO.FALLING, callback = calculate_elapse, bouncetime = 2)
+	GPIO.add_event_detect(sensor, GPIO.FALLING, callback = calculate_elapse, bouncetime = 20)
 
 if __name__ == '__main__':
     setup()
     init_interrupt()
     while True:
         calculate_speed(3)
-	if time.time() - last_detect > 0.5:
-		rpm = 0
 	r = open('/var/ui/data/data.rpm', 'w')
 	print >> r, rpm #x1000
-	r.close();
+	r.close()
         print('rpm:{0:.0f} KMH:{1:.1f} dist_meas:{2:.2f}m pulse:{3}       elapse_time:{4:.4f}'.format(rpm,km_per_hour,dist_meas,pulse,elapse))
-        print time.time() - last_detect
-	sleep(0.5)
+        sleep(0.5)

@@ -60,7 +60,7 @@
 	
 	<script type="text/javascript">
     /* Adjustable vars for vehicle */    
-    var maxRpm = 8; //x100 converted
+    var maxRpm = 8000;
     var maxMph = 60;
     var maxFuel = 3.5;
 
@@ -103,17 +103,6 @@
 		/* Engine Temp */
 		engineTempTxt = document.getElementById('engineTemp');
 		
-		/* Setup MPH/RPM */
-		mphTxt = document.getElementById("mphText");
-		mphGauge = new ProgressBar.SemiCircle(mph, {
-		  strokeWidth: 6,
-		  easing: 'easeInOut',
-		  duration: 1400,
-		  color: '#7faef9',
-		  trailColor: '#eee',
-		  trailWidth: 1,
-		  svgStyle: null
-		});
 		
 		rpmTxt = document.getElementById("rpmText");
 		rpmGauge = new ProgressBar.SemiCircle(rpm, {
@@ -131,7 +120,7 @@
 	
     function updateUI() {
         updateField("/var/ui/data/data.rpm", rpmTxt);
-        updateField("/var/ui/data/data.mph", mphTxt);
+       // updateField("/var/ui/data/data.mph", mphTxt);
         updateField("/var/ui/data/data.temp", engineTempTxt);
 	updateField("/var/ui/data/data.gas", gasTxt);
     }
@@ -141,11 +130,13 @@
             data = data.trim();
 	    if (file.indexOf("gas") == -1)
 		data = Math.floor(data);
+
             if (field.innerText != data) {
                 field.innerText = data;
                 if (file.indexOf("rpm") != -1) {
                     rpmGauge.animate(data / maxRpm);
                 } else if (file.indexOf("mph") != -1) {
+		    console.log("Data: " + data);
                     mphGauge.animate(data / maxMph);
                 } else if (file.indexOf("gas") != -1) {
                     gasGauge.animate(data);
@@ -168,10 +159,8 @@
 		</div>
 		<div class="col-sm-5">
 			<center>
-				<h1 id="mphHead"><span id="mphText">30</span><small>MPH</small></h1>
-				<div id="mph"></div>
 				<div id="rpm"></div>
-				<h2 id="rpmHead"><span id="rpmText">1</span></h2><small>x100 RPM</small>
+				<h2 id="rpmHead"><span id="rpmText">1</span></h2><small>RPM</small>
 			</center>
 		</div>
 		<div class="col-sm-4">
